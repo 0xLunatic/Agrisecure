@@ -13,7 +13,7 @@ run
 ## Usage
 
 ```java
-Draft
+- W/A/S/D for a Basic Character Movement
 ```
 
 ## Contributing
