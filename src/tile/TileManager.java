@@ -9,20 +9,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TileManager {
 
     GamePanel gp;
-    Tile[] tile;
-    int mapTileNum[][];
+    public Tile[] tile;
+    public int mapTileNum[][];
 
     public TileManager(GamePanel gp){
         this.gp = gp;
         tile = new Tile[10];
-        mapTileNum = new int[gp.maxScreenCol][gp.maxScreenRow];
+        mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 
         getTileImage();
         loadMap();
+
     }
     public void getTileImage(){
         try{
@@ -30,36 +33,46 @@ public class TileManager {
             tile[0].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Grass.png"));
 
             tile[1] = new Tile();
-            tile[1].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Fence Facing X with Grass.png"));
+            tile[1].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Sand.png"));
 
             tile[2] = new Tile();
             tile[2].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Water.png"));
 
             tile[3] = new Tile();
-            tile[3].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Fence Facing Y with Grass.png"));
+            tile[3].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Fence Facing X with Grass.png"));
+            tile[3].collision = true;
+
+            tile[4] = new Tile();
+            tile[4].image = ImageIO.read(getClass().getResourceAsStream("/tiles/Fence Facing Y with Grass.png"));
+            tile[4].collision = true;
+
+
         }catch (IOException e){
             e.printStackTrace();
         }
     }
     public void loadMap(){
         try {
-            InputStream is = getClass().getResourceAsStream("/maps/map_1.txt");
+            InputStream is = getClass().getResourceAsStream("/maps/worldmap.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             int col = 0;
             int row = 0;
 
-            while (col < gp.maxScreenCol && row < gp.maxScreenRow){
+            while (col < gp.maxWorldCol && row < gp.maxWorldRow){
                 String line = br.readLine();
-                while(col < gp.maxScreenCol){
+                while(col < gp.maxWorldCol){
                     String numbers[] = line.split(" ");
 
                     int num = Integer.parseInt(numbers[col]);
+                    if (num == 3){
+                        System.out.println("TES");
+                    }
 
                     mapTileNum[col][row] = num;
                     col++;
                 }
-                if (col == gp.maxScreenCol){
+                if (col == gp.maxWorldCol){
                     col = 0;
                     row++;
                 }
@@ -72,24 +85,64 @@ public class TileManager {
     }
     public void draw(Graphics2D g2){
 
-        int col = 0;
-        int row = 0;
-        int x = 0;
-        int y = 0;
+        int worldCol = 0;
+        int worldRow = 0;
 
-        while(col < gp.maxScreenCol && row < gp.maxScreenRow){
-            int tileNum = mapTileNum[col][row];
+        while(worldCol < gp.maxWorldCol && worldRow < gp.maxWorldRow){
 
-            g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
-            col++;
-            x += gp.tileSize;
+            int tileNum = mapTileNum[worldCol][worldRow];
 
-            if (col == gp.maxScreenCol){
-                col = 0;
-                x = 0;
-                row++;
-                y += gp.tileSize;
+            int worldX = worldCol * gp.tileSize;
+            int worldY = worldRow * gp.tileSize;
+            int screenX = worldX - gp.player.worldX + gp.player.screenX;
+            int screenY = worldY - gp.player.worldY + gp.player.screenY;
+
+            // Stop moving the camera at world edge
+//            int rightOffset = gp.screenWitdh - gp.player.screenX;
+//            screenX = checkIfAtEdgeOfXAxis(worldX, screenX, rightOffset);
+//
+//            int bottomOffset = gp.screenHeight - gp.player.screenY;
+//            screenY = checkIfAtEdgeOfYAxis(worldY, screenY, bottomOffset);
+
+            if (worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
+            worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
+            worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&
+            worldY - gp.tileSize < gp.player.worldY + gp.player.screenY) {
+                g2.drawImage(tile[tileNum].image, screenX, screenY, gp.tileSize, gp.tileSize, null);
+//            } else if (gp.player.screenX > gp.player.worldX
+//                    || gp.player.screenY > gp.player.worldY
+//                    || rightOffset > gp.worldWidth - gp.player.worldX
+//                    || bottomOffset > gp.worldHeight - gp.player.worldY) {
+//                g2.drawImage(tile[tileNum].image, screenX, screenY, gp.tileSize, gp.tileSize, null);
+//            }
+            }
+            worldCol++;
+
+            if (worldCol == gp.maxWorldCol){
+                worldCol = 0;
+                worldRow++;
             }
         }
+    }
+    private int checkIfAtEdgeOfXAxis(int worldX, int screenX, int rightOffset) {
+        if (gp.player.screenX > gp.player.worldX) {
+            return worldX;
+        }
+
+        if (rightOffset > gp.worldWidth - gp.player.worldX) {
+            return gp.screenWitdh - (gp.screenWitdh - worldX);
+        }
+
+        return screenX;
+    }
+    private int checkIfAtEdgeOfYAxis(int worldY, int screenY, int bottomOffset) {
+        if (gp.player.screenY > gp.player.worldY) {
+            return worldY;
+        }
+
+        if (bottomOffset > gp.worldHeight - gp.player.worldY) {
+            return gp.screenHeight - (gp.worldHeight - worldY);
+        }
+        return screenY;
     }
 }
