@@ -2,11 +2,13 @@ package entity;
 
 import Main.GamePanel;
 import Main.KeyHandler;
+import Main.UtilityTool;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.annotation.Retention;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,54 +16,75 @@ public class Player extends Entity {
 
     GamePanel gp;
     KeyHandler keyH;
-    private BufferedImage spriteSheet = null;
     private boolean idle;
-    private int tickCount = 0;
-    private boolean swap;
+
+    public final int screenX;
+    public final int screenY;
+    public int hasHoe = 0;
 
 
     public Player(GamePanel gp, KeyHandler keyH){
         this.gp = gp;
         this.keyH = keyH;
+
+        screenX = gp.screenWitdh/2 - (gp.tileSize/2);
+        screenY = gp.screenHeight/2 - (gp.tileSize/2);
+
+        solidArea = new Rectangle();
+        solidArea.x = 8;
+        solidArea.y = 16;
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
+        solidArea.width = 32;
+        solidArea.height = 32;
+
         setDefaultValues();
     }
     public void setDefaultValues(){
-        x = 100;
-        y = 100;
-        speed = 4;
+        worldX = gp.tileSize * 25;
+        worldY = gp.tileSize * 25;
+        speed = 3;
         direction = "1";
     }
-    public void getPlayerImage(){
-        try{
-            down1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Down_1.png"));
-            down2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Down_2.png"));
-            down3 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Down_3.png"));
+    public void getPlayerImage() {
 
-            idleDown1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Down_1.png"));
-            idleDown2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Down_2.png"));
+        down1 = setup("Alex_Down_1");
+        down2 = setup("Alex_Down_2");
+        down3 = setup("Alex_Down_3");
 
-            up1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Up_1.png"));
-            up2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Up_2.png"));
-            up3 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Up_3.png"));
+        idleDown1 = setup("Alex_Idle_Down_1");
+        idleDown2 = setup("Alex_Idle_Down_2");
 
-            idleUp1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Up_1.png"));
-            idleUp2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Up_2.png"));
+        up1 = setup("Alex_Up_1");
+        up2 = setup("Alex_Up_2");
+        up3 = setup("Alex_Up_3");
 
-            left1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Left_1.png"));
-            left2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Left_2.png"));
+        idleUp1 = setup("Alex_Idle_Up_1");
+        idleUp2 = setup("Alex_Idle_Up_2");
 
-            idleLeft1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Left_1.png"));
-            idleLeft2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Left_2.png"));
+        left1 = setup("Alex_Left_1");
+        left2 = setup("Alex_Left_2");
 
-            right1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Right_1.png"));
-            right2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Right_2.png"));
+        idleLeft1 = setup("Alex_Idle_Left_1");
+        idleLeft2 = setup("Alex_Idle_Left_2");
 
-            idleRight1 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Right_1.png"));
-            idleRight2 = ImageIO.read(getClass().getResourceAsStream("/player/Alex_Idle_Right_2.png"));
-        } catch (IOException e){
+        right1 = setup("Alex_Right_1");
+        right2 = setup("Alex_Right_2");
+
+        idleRight1 = setup("Alex_Idle_Right_1");
+        idleRight2 = setup("Alex_Idle_Right_2");
+    }
+    public BufferedImage setup(String imageName){
+        UtilityTool uTool = new UtilityTool();
+        BufferedImage image = null;
+
+        try {
+            image = ImageIO.read(getClass().getResourceAsStream("/player/" +imageName+ ".png"));
+//            image = uTool.scaleImage(image, gp.tileSize, gp.tileSize);
+        }catch (IOException e){
             e.printStackTrace();
-
         }
+        return image;
     }
 
     public void update(){
@@ -72,20 +95,46 @@ public class Player extends Entity {
             idle = false;
             if (keyH.upPressed == true){
                 direction = "up";
-                y -= speed;
+
             }
             else if (keyH.downPressed == true){
                 direction = "down";
-                y += speed;
+
             }
             else if (keyH.leftPressed == true){
                 direction = "left";
-                x -= speed;
+
             }
             else if (keyH.rightPressed == true){
                 direction = "right";
-                x += speed;
             }
+
+            // CHECK TILE COLLISION
+            collisionOn = false;
+            gp.collisionChecker.checkTile(this);
+
+            // CHECK OBJECT COLLISION
+            int objIndex = gp.collisionChecker.checkObject(this, true);
+            pickUpObjects(objIndex);
+            // COLLISION FALSE - PLAYER MOVE
+
+            if (collisionOn == false){
+                switch (direction){
+                    case "up":
+                        worldY -= speed;
+                        break;
+                    case "down":
+                        worldY += speed;
+                        break;
+                    case "left":
+                        worldX -= speed;
+                        break;
+                    case "right":
+                        worldX += speed;
+                        break;
+                }
+            }
+
             spriteCounter++;
             if (spriteCounter > 10){
                 if (spriteNum == 1){
@@ -110,6 +159,26 @@ public class Player extends Entity {
             }
         }
 
+    }
+    public void pickUpObjects(int i){
+        if (i != 999){
+            String objectName = gp.obj[i].name;
+
+            switch (objectName) {
+                case "hoe":
+                    gp.playSoundEffect(1);
+                    hasHoe++;
+                    gp.obj[i] = null;
+                    gp.ui.showMessage("You got the hoe!");
+                    break;
+                case "bunchsand":
+                    if (hasHoe > 0) {
+                        gp.obj[i] = null;
+                        hasHoe--;
+                    }
+                    break;
+            }
+        }
     }
 
     public void draw(Graphics2D g2){
@@ -189,6 +258,6 @@ public class Player extends Entity {
             }
         }
 
-        g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
+        g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
     }
 }
