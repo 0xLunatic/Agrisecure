@@ -4,13 +4,10 @@ import Main.GamePanel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TileManager {
 
@@ -80,7 +77,7 @@ public class TileManager {
     }
     public void loadMap(){
         try {
-            InputStream is = getClass().getResourceAsStream("/maps/worldmap.txt");
+            InputStream is = getClass().getResourceAsStream("/maps/worldmap2.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             int col = 0;

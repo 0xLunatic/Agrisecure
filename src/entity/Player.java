@@ -44,35 +44,35 @@ public class Player extends Entity {
         worldX = gp.tileSize * 25;
         worldY = gp.tileSize * 25;
         speed = 3;
-        direction = "1";
+        direction = "down";
     }
     public void getPlayerImage() {
 
-        down1 = setup("Alex_Down_1");
-        down2 = setup("Alex_Down_2");
-        down3 = setup("Alex_Down_3");
+        down1 = setup("c_down_1");
+        down2 = setup("c_down_2");
+        down3 = setup("c_down_3");
 
-        idleDown1 = setup("Alex_Idle_Down_1");
-        idleDown2 = setup("Alex_Idle_Down_2");
+        idleDown1 = setup("c_down_3");
+        idleDown2 = setup("c_down_3");
 
-        up1 = setup("Alex_Up_1");
-        up2 = setup("Alex_Up_2");
-        up3 = setup("Alex_Up_3");
+        up1 = setup("c_up_1");
+        up2 = setup("c_up_2");
+        up3 = setup("c_up_3");
 
-        idleUp1 = setup("Alex_Idle_Up_1");
-        idleUp2 = setup("Alex_Idle_Up_2");
+        idleUp1 = setup("c_up_3");
+        idleUp2 = setup("c_up_3");
 
-        left1 = setup("Alex_Left_1");
-        left2 = setup("Alex_Left_2");
+        left1 = setup("c_left_2");
+        left2 = setup("c_left_3");
 
-        idleLeft1 = setup("Alex_Idle_Left_1");
-        idleLeft2 = setup("Alex_Idle_Left_2");
+        idleLeft1 = setup("c_left_3");
+        idleLeft2 = setup("c_left_3");
 
-        right1 = setup("Alex_Right_1");
-        right2 = setup("Alex_Right_2");
+        right1 = setup("c_right_2");
+        right2 = setup("c_right_3");
 
-        idleRight1 = setup("Alex_Idle_Right_1");
-        idleRight2 = setup("Alex_Idle_Right_2");
+        idleRight1 = setup("c_right_3");
+        idleRight2 = setup("c_right_3");
     }
     public BufferedImage setup(String imageName){
         UtilityTool uTool = new UtilityTool();
